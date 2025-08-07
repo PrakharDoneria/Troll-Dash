@@ -7,14 +7,14 @@ import 'package:trolldash/GameObjects/fake_platform.dart';
 import 'package:trolldash/GameObjects/player.dart' as player_file;
 import 'package:trolldash/sound_manager.dart';
 
-class Level2 extends StatefulWidget {
-  const Level2({super.key});
+class Level3 extends StatefulWidget {
+  const Level3({super.key});
 
   @override
-  State<Level2> createState() => _Level2State();
+  State<Level3> createState() => _Level3State();
 }
 
-class _Level2State extends State<Level2> with WidgetsBindingObserver {
+class _Level3State extends State<Level3> with WidgetsBindingObserver {
   double playerX = 100;
   double playerY = 100;
   double velocityX = 0;
@@ -31,14 +31,15 @@ class _Level2State extends State<Level2> with WidgetsBindingObserver {
   Set<LogicalKeyboardKey> keysPressed = {};
   final SoundManager _soundManager = SoundManager();
 
-  // Level 2 has more challenging platforms and fake platforms
+  // Level 3 - Ultimate Troll Challenge
   List<Map<String, double>> platforms = [
-    {'x': 0, 'y': 0, 'width': 150, 'height': 50}, // Ground (partial)
-    {'x': 200, 'y': 80, 'width': 80, 'height': 20}, // Platform 1
-    {'x': 320, 'y': 120, 'width': 80, 'height': 20}, // Platform 2
-    {'x': 450, 'y': 160, 'width': 80, 'height': 20}, // Platform 3
-    {'x': 580, 'y': 100, 'width': 100, 'height': 20}, // Platform 4
-    {'x': 720, 'y': 50, 'width': double.infinity, 'height': 50}, // End ground
+    {'x': 0, 'y': 0, 'width': 100, 'height': 50}, // Starting ground
+    {'x': 150, 'y': 60, 'width': 60, 'height': 20}, // Platform 1
+    {'x': 250, 'y': 90, 'width': 60, 'height': 20}, // Platform 2
+    {'x': 350, 'y': 120, 'width': 60, 'height': 20}, // Platform 3
+    {'x': 480, 'y': 140, 'width': 80, 'height': 20}, // Platform 4
+    {'x': 600, 'y': 100, 'width': 60, 'height': 20}, // Platform 5
+    {'x': 700, 'y': 80, 'width': 200, 'height': 50}, // End ground
   ];
 
   void resetLevel() {
@@ -58,13 +59,11 @@ class _Level2State extends State<Level2> with WidgetsBindingObserver {
     isOnGround = false;
 
     for (var platform in platforms) {
-      // Check collision with platform
       if (playerX + playerSize > platform['x']! &&
           playerX < platform['x']! + platform['width']! &&
           playerY <= platform['y']! + platform['height']! &&
           playerY + playerSize > platform['y']!) {
         
-        // Landing on top of platform
         if (velocityY <= 0 && playerY > platform['y']! + platform['height']! - 5) {
           playerY = platform['y']! + platform['height']!;
           velocityY = 0;
@@ -73,22 +72,24 @@ class _Level2State extends State<Level2> with WidgetsBindingObserver {
       }
     }
 
-    // Check trap collisions
-    if ((playerX < 350 && playerX > 290 && playerY <= 100) ||
-        (playerX < 520 && playerX > 420 && playerY <= 180) ||
-        (playerX < 650 && playerX > 550 && playerY <= 120)) {
+    // Multiple trap zones
+    if ((playerX < 220 && playerX > 180 && playerY <= 80) ||
+        (playerX < 320 && playerX > 280 && playerY <= 110) ||
+        (playerX < 450 && playerX > 410 && playerY <= 140) ||
+        (playerX < 570 && playerX > 530 && playerY <= 160) ||
+        (playerX < 670 && playerX > 630 && playerY <= 120)) {
       _soundManager.playTrapSound();
       gameOver = true;
     }
 
-    // Check fake platform "collision" (it disappears)
-    if (playerX > 150 && playerX < 200 && playerY <= 130 && playerY > 110) {
+    // Fake platform trap
+    if (playerX > 120 && playerX < 150 && playerY <= 30 && playerY > 10) {
       _soundManager.playTrapSound();
       gameOver = true;
     }
 
-    // Check exit door collision
-    if (playerX > 800 && playerX < 860 && playerY <= 110 && playerY > 50) {
+    // Exit door collision
+    if (playerX > 780 && playerX < 840 && playerY <= 130 && playerY > 80) {
       _soundManager.playLevelCompleteSound();
       levelComplete = true;
     }
@@ -121,18 +122,15 @@ class _Level2State extends State<Level2> with WidgetsBindingObserver {
         isOnGround = false;
       }
 
-      // Apply physics
       velocityY += gravity * 0.05;
       playerX += velocityX;
       playerY += velocityY;
 
-      // Keep player in bounds horizontally
       if (playerX < 0) playerX = 0;
-      if (playerX > MediaQuery.of(context).size.width - playerSize) {
-        playerX = MediaQuery.of(context).size.width - playerSize;
+      if (playerX > 900 - playerSize) {
+        playerX = 900 - playerSize;
       }
 
-      // Check collisions
       checkCollisions();
     });
   }
@@ -171,107 +169,110 @@ class _Level2State extends State<Level2> with WidgetsBindingObserver {
         },
         child: Stack(
           children: [
-            // Night sky background
+            // Sunset/Volcano background
             Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Colors.indigo.shade900,
-                    Colors.purple.shade900,
-                    Colors.indigo.shade800,
+                    Colors.deepOrange.shade800,
+                    Colors.red.shade900,
+                    Colors.orange.shade800,
+                    Colors.yellow.shade700,
                   ],
                 ),
               ),
             ),
 
-            // Stars (fixed positions to avoid MediaQuery issues)
-            ...List.generate(20, (index) => Positioned(
-              left: (index * 47) % 800.0, // Use fixed width instead of MediaQuery
-              top: (index * 31) % 200,
+            // Floating embers effect
+            ...List.generate(15, (index) => Positioned(
+              left: (index * 61 + 100) % 800.0,
+              top: (index * 43 + 50) % 300,
               child: Container(
-                width: 2,
-                height: 2,
-                decoration: const BoxDecoration(
-                  color: Colors.white,
+                width: 3,
+                height: 3,
+                decoration: BoxDecoration(
+                  color: Colors.orange.withOpacity(0.8),
                   shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.orange.withOpacity(0.5),
+                      blurRadius: 4,
+                    ),
+                  ],
                 ),
               ),
             )),
 
-            // Ground segments  
-            Positioned.fill(
+            // Ground segments
+            Positioned(
               bottom: 0,
-              child: Align(
-                alignment: Alignment.bottomLeft,
-                child: Container(
-                  width: 150,
-                  height: 50,
-                  color: Colors.brown.shade600,
-                ),
+              left: 0,
+              child: Container(
+                width: 100,
+                height: 50,
+                color: Colors.brown.shade800,
               ),
             ),
             Positioned(
               bottom: 0,
-              right: 0,
+              right: 100,
               child: Container(
-                width: 200, // Fixed width instead of calculation
+                width: 200,
                 height: 50,
-                color: Colors.brown.shade600,
+                color: Colors.brown.shade800,
+              ),
+            ),
+
+            // Lava pools (visual only)
+            Positioned(
+              bottom: 0,
+              left: 100,
+              child: Container(
+                width: 600,
+                height: 30,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.red.shade600,
+                      Colors.orange.shade500,
+                      Colors.red.shade600,
+                    ],
+                  ),
+                ),
               ),
             ),
 
             // Ground blocks (platforms)
-            const GroundBlock(x: 200, y: 80, width: 80, height: 20),
-            const GroundBlock(x: 320, y: 120, width: 80, height: 20),
-            const GroundBlock(x: 450, y: 160, width: 80, height: 20),
-            const GroundBlock(x: 580, y: 100, width: 100, height: 20),
+            const GroundBlock(x: 150, y: 60, width: 60, height: 20),
+            const GroundBlock(x: 250, y: 90, width: 60, height: 20),
+            const GroundBlock(x: 350, y: 120, width: 60, height: 20),
+            const GroundBlock(x: 480, y: 140, width: 80, height: 20),
+            const GroundBlock(x: 600, y: 100, width: 60, height: 20),
 
-            // Fake platform (looks like a real one but disappears when touched)
+            // Fake platform near start (troll element)
             FakePlatform(
-              x: 150,
-              y: 110,
-              width: 80,
-              height: 20,
+              x: 120,
+              y: 20,
+              width: 50,
+              height: 15,
               onStep: () {
                 setState(() => gameOver = true);
               },
             ),
 
-            // Traps
-            Trap(
-              x: 310,
-              y: 80,
-              width: 30,
-              height: 30,
-              onTrigger: () {
-                setState(() => gameOver = true);
-              },
-            ),
-            Trap(
-              x: 480,
-              y: 160,
-              width: 30,
-              height: 30,
-              onTrigger: () {
-                setState(() => gameOver = true);
-              },
-            ),
-            Trap(
-              x: 620,
-              y: 100,
-              width: 30,
-              height: 30,
-              onTrigger: () {
-                setState(() => gameOver = true);
-              },
-            ),
+            // Multiple traps
+            Trap(x: 190, y: 60, width: 25, height: 25, onTrigger: () => setState(() => gameOver = true)),
+            Trap(x: 290, y: 90, width: 25, height: 25, onTrigger: () => setState(() => gameOver = true)),
+            Trap(x: 420, y: 120, width: 25, height: 25, onTrigger: () => setState(() => gameOver = true)),
+            Trap(x: 540, y: 140, width: 25, height: 25, onTrigger: () => setState(() => gameOver = true)),
+            Trap(x: 640, y: 100, width: 25, height: 25, onTrigger: () => setState(() => gameOver = true)),
 
             // Exit door
             ExitDoor(
-              x: 820,
-              y: 50,
+              x: 800,
+              y: 80,
               width: 40,
               height: 60,
               onEnter: () {
@@ -294,31 +295,28 @@ class _Level2State extends State<Level2> with WidgetsBindingObserver {
               child: Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: Colors.black54,
+                  color: Colors.black.withOpacity(0.7),
                   borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.orange.shade400),
                 ),
                 child: const Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Level 2 - Troll\'s Revenge',
+                      'Level 3 - Volcano Chaos',
                       style: TextStyle(
-                        color: Colors.yellow,
+                        color: Colors.orange,
                         fontWeight: FontWeight.bold,
                         fontSize: 14,
                       ),
                     ),
                     Text(
-                      'Watch out for fake platforms!',
+                      'Ultimate troll challenge!',
                       style: TextStyle(color: Colors.white, fontSize: 10),
                     ),
                     Text(
-                      'Arrow Keys / WASD - Move',
-                      style: TextStyle(color: Colors.white, fontSize: 10),
-                    ),
-                    Text(
-                      'Space / W / Up - Jump',
-                      style: TextStyle(color: Colors.white, fontSize: 10),
+                      'Don\'t trust anything!',
+                      style: TextStyle(color: Colors.red, fontSize: 10),
                     ),
                   ],
                 ),
@@ -332,7 +330,7 @@ class _Level2State extends State<Level2> with WidgetsBindingObserver {
               child: ElevatedButton(
                 onPressed: () => Navigator.pop(context),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.purple.shade700,
+                  backgroundColor: Colors.deepOrange.shade700,
                   minimumSize: const Size(60, 36),
                 ),
                 child: const Text('Back', style: TextStyle(fontSize: 12)),
@@ -342,25 +340,25 @@ class _Level2State extends State<Level2> with WidgetsBindingObserver {
             // Game Over overlay
             if (gameOver)
               Container(
-                color: Colors.black.withOpacity(0.8),
+                color: Colors.black.withOpacity(0.9),
                 child: Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       const Text(
-                        'You\'ve Been Trolled!',
+                        '🌋 ROASTED! 🔥',
                         style: TextStyle(
-                          color: Colors.red,
-                          fontSize: 42,
+                          color: Colors.orange,
+                          fontSize: 48,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       const SizedBox(height: 10),
                       const Text(
-                        '🤡 GAME OVER 🤡',
+                        'The trolls got you again!',
                         style: TextStyle(
-                          color: Colors.orange,
-                          fontSize: 24,
+                          color: Colors.red,
+                          fontSize: 20,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -373,7 +371,7 @@ class _Level2State extends State<Level2> with WidgetsBindingObserver {
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.green.shade700,
                             ),
-                            child: const Text('Try Again'),
+                            child: const Text('Rise from Ashes'),
                           ),
                           const SizedBox(width: 20),
                           ElevatedButton(
@@ -381,7 +379,7 @@ class _Level2State extends State<Level2> with WidgetsBindingObserver {
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.purple.shade700,
                             ),
-                            child: const Text('Main Menu'),
+                            child: const Text('Retreat'),
                           ),
                         ],
                       ),
@@ -393,25 +391,25 @@ class _Level2State extends State<Level2> with WidgetsBindingObserver {
             // Level Complete overlay
             if (levelComplete)
               Container(
-                color: Colors.black.withOpacity(0.8),
+                color: Colors.black.withOpacity(0.9),
                 child: Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       const Text(
-                        '🎭 Troll Master! 🎭',
+                        '🏆 TROLL LEGEND! 🏆',
                         style: TextStyle(
                           color: Colors.gold,
-                          fontSize: 36,
+                          fontSize: 42,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       const SizedBox(height: 10),
                       const Text(
-                        'Level 2 Complete!',
+                        'You\'ve conquered all trolls!',
                         style: TextStyle(
                           color: Colors.yellow,
-                          fontSize: 24,
+                          fontSize: 18,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -424,7 +422,7 @@ class _Level2State extends State<Level2> with WidgetsBindingObserver {
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.green.shade700,
                             ),
-                            child: const Text('Play Again'),
+                            child: const Text('Master It Again'),
                           ),
                           const SizedBox(width: 20),
                           ElevatedButton(
@@ -432,7 +430,7 @@ class _Level2State extends State<Level2> with WidgetsBindingObserver {
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.purple.shade700,
                             ),
-                            child: const Text('Main Menu'),
+                            child: const Text('Victory Lap'),
                           ),
                         ],
                       ),

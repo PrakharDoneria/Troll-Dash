@@ -114,11 +114,19 @@ class _MainMenuState extends State<MainMenu>
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Choose Your Challenge',
+                        'Puzzle Platformer with Mind Games',
                         style: TextStyle(
                           fontSize: 16,
                           color: Colors.purple.shade300,
                           fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Choose Your Challenge - ${levels.length} Levels Available',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.purple.shade200,
                         ),
                       ),
                     ],
@@ -272,6 +280,34 @@ class _LevelButtonState extends State<_LevelButton>
     super.dispose();
   }
 
+  String _getLevelDescription(int levelNumber) {
+    switch (levelNumber) {
+      case 1:
+        return 'Learn the basics';
+      case 2:
+        return 'Fake platforms await';
+      case 3:
+        return 'Ultimate troll challenge';
+      default:
+        return 'Mystery awaits';
+    }
+  }
+
+  List<Widget> _getDifficultyStars(int levelNumber) {
+    int difficulty = levelNumber; // 1-3 stars based on level
+    List<Widget> stars = [];
+    
+    for (int i = 0; i < 3; i++) {
+      stars.add(Icon(
+        i < difficulty ? Icons.star : Icons.star_border,
+        color: i < difficulty ? Colors.yellow.shade600 : Colors.white38,
+        size: 14,
+      ));
+    }
+    
+    return stars;
+  }
+
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
@@ -340,22 +376,46 @@ class _LevelButtonState extends State<_LevelButton>
                   Expanded(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Text(
-                        widget.level.name,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
-                        ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            widget.level.name,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            _getLevelDescription(widget.levelNumber),
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: Colors.white.withOpacity(0.8),
+                              fontStyle: FontStyle.italic,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Row(
+                            children: _getDifficultyStars(widget.levelNumber),
+                          ),
+                        ],
                       ),
                     ),
                   ),
                   const Padding(
                     padding: EdgeInsets.only(right: 16),
-                    child: Icon(
-                      Icons.arrow_forward_ios,
-                      color: Colors.white70,
-                      size: 20,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.arrow_forward_ios,
+                          color: Colors.white70,
+                          size: 20,
+                        ),
+                      ],
                     ),
                   ),
                 ],
