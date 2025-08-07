@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'level_registry.dart';
+import 'sound_manager.dart';
 
 void main() {
   runApp(TrollDash());
@@ -49,6 +50,7 @@ class _MainMenuState extends State<MainMenu>
     with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
+  final SoundManager _soundManager = SoundManager();
 
   @override
   void initState() {
@@ -65,6 +67,9 @@ class _MainMenuState extends State<MainMenu>
       curve: Curves.easeInOut,
     ));
     _animationController.forward();
+    
+    // Start background music
+    _soundManager.playBackgroundMusic();
   }
 
   @override
@@ -166,18 +171,53 @@ class _MainMenuState extends State<MainMenu>
                 ),
               ),
 
-              // Footer
+              // Footer with sound controls
               Padding(
                 padding: const EdgeInsets.all(20),
                 child: FadeTransition(
                   opacity: _fadeAnimation,
-                  child: Text(
-                    'May the trolls be ever in your favor! 😈',
-                    style: TextStyle(
-                      color: Colors.purple.shade300,
-                      fontSize: 12,
-                      fontStyle: FontStyle.italic,
-                    ),
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          IconButton(
+                            onPressed: () {
+                              setState(() {
+                                _soundManager.toggleSound();
+                              });
+                            },
+                            icon: Icon(
+                              _soundManager.soundEnabled ? Icons.volume_up : Icons.volume_off,
+                              color: Colors.purple.shade300,
+                              size: 24,
+                            ),
+                          ),
+                          const SizedBox(width: 20),
+                          IconButton(
+                            onPressed: () {
+                              setState(() {
+                                _soundManager.toggleMusic();
+                              });
+                            },
+                            icon: Icon(
+                              _soundManager.musicEnabled ? Icons.music_note : Icons.music_off,
+                              color: Colors.purple.shade300,
+                              size: 24,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        'May the trolls be ever in your favor! 😈',
+                        style: TextStyle(
+                          color: Colors.purple.shade300,
+                          fontSize: 12,
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
