@@ -401,7 +401,7 @@ class _Level2State extends State<Level2> with WidgetsBindingObserver {
                       const Text(
                         '🎭 Troll Master! 🎭',
                         style: TextStyle(
-                          color: Colors.gold,
+                          color: Colors.yellow,
                           fontSize: 36,
                           fontWeight: FontWeight.bold,
                         ),

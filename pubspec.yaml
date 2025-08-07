@@ -1,5 +1,5 @@
 name: trolldash
-description: "Puzzle Platformer with Mind Games"
+description: Puzzle Platformer with Mind Games
 publish_to: 'none'
 version: 1.0.0+1
 
@@ -19,7 +19,7 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
-  
+
   assets:
     - assets/sounds/
     - assets/music/
