@@ -15,8 +15,8 @@ class Level2 extends StatefulWidget {
 }
 
 class _Level2State extends State<Level2> with WidgetsBindingObserver {
-  double playerX = 100;
-  double playerY = 100;
+  double playerX = 50;
+  double playerY = 50; // Start on ground level
   double velocityX = 0;
   double velocityY = 0;
   bool isOnGround = false;
@@ -43,8 +43,8 @@ class _Level2State extends State<Level2> with WidgetsBindingObserver {
 
   void resetLevel() {
     setState(() {
-      playerX = 100;
-      playerY = 100;
+      playerX = 50;
+      playerY = 50; // Start on ground level
       velocityX = 0;
       velocityY = 0;
       isOnGround = false;
@@ -140,6 +140,11 @@ class _Level2State extends State<Level2> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
+    // Force landscape orientation
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
     WidgetsBinding.instance.addObserver(this);
     _soundManager.playBackgroundMusic();
     Future.doWhile(() async {
@@ -151,6 +156,13 @@ class _Level2State extends State<Level2> with WidgetsBindingObserver {
 
   @override
   void dispose() {
+    // Reset orientation when leaving
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
     WidgetsBinding.instance.removeObserver(this);
     _soundManager.stopBackgroundMusic();
     super.dispose();
@@ -214,9 +226,9 @@ class _Level2State extends State<Level2> with WidgetsBindingObserver {
             ),
             Positioned(
               bottom: 0,
+              left: 720,
               right: 0,
               child: Container(
-                width: MediaQuery.of(context).size.width - 720,
                 height: 50,
                 color: Colors.brown.shade600,
               ),
@@ -336,6 +348,105 @@ class _Level2State extends State<Level2> with WidgetsBindingObserver {
                   minimumSize: const Size(60, 36),
                 ),
                 child: const Text('Back', style: TextStyle(fontSize: 12)),
+              ),
+            ),
+
+            // On-screen touch controls for mobile
+            Positioned(
+              bottom: 20,
+              left: 20,
+              child: Row(
+                children: [
+                  // Left arrow button
+                  GestureDetector(
+                    onTapDown: (_) {
+                      keysPressed.add(LogicalKeyboardKey.arrowLeft);
+                    },
+                    onTapUp: (_) {
+                      keysPressed.remove(LogicalKeyboardKey.arrowLeft);
+                    },
+                    onTapCancel: () {
+                      keysPressed.remove(LogicalKeyboardKey.arrowLeft);
+                    },
+                    child: Container(
+                      width: 50,
+                      height: 50,
+                      decoration: BoxDecoration(
+                        color: Colors.purple.shade700.withOpacity(0.8),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.white30),
+                      ),
+                      child: const Icon(
+                        Icons.arrow_left,
+                        color: Colors.white,
+                        size: 30,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  // Right arrow button  
+                  GestureDetector(
+                    onTapDown: (_) {
+                      keysPressed.add(LogicalKeyboardKey.arrowRight);
+                    },
+                    onTapUp: (_) {
+                      keysPressed.remove(LogicalKeyboardKey.arrowRight);
+                    },
+                    onTapCancel: () {
+                      keysPressed.remove(LogicalKeyboardKey.arrowRight);
+                    },
+                    child: Container(
+                      width: 50,
+                      height: 50,
+                      decoration: BoxDecoration(
+                        color: Colors.purple.shade700.withOpacity(0.8),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.white30),
+                      ),
+                      child: const Icon(
+                        Icons.arrow_right,
+                        color: Colors.white,
+                        size: 30,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Jump button
+            Positioned(
+              bottom: 20,
+              right: 20,
+              child: GestureDetector(
+                onTapDown: (_) {
+                  keysPressed.add(LogicalKeyboardKey.space);
+                },
+                onTapUp: (_) {
+                  keysPressed.remove(LogicalKeyboardKey.space);
+                },
+                onTapCancel: () {
+                  keysPressed.remove(LogicalKeyboardKey.space);
+                },
+                child: Container(
+                  width: 60,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    color: Colors.orange.shade600.withOpacity(0.8),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white30),
+                  ),
+                  child: const Center(
+                    child: Text(
+                      'JUMP',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                ),
               ),
             ),
 
