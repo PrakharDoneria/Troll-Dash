@@ -92,16 +92,18 @@ class _Level1State extends State<Level1> with WidgetsBindingObserver {
     if (gameOver || levelComplete) return;
 
     setState(() {
+      // Handle horizontal movement (can work independently of jumping)
       velocityX = 0;
-
       if (keysPressed.contains(LogicalKeyboardKey.arrowLeft) || 
           keysPressed.contains(LogicalKeyboardKey.keyA)) {
         velocityX = -moveSpeed;
-      } else if (keysPressed.contains(LogicalKeyboardKey.arrowRight) || 
-                 keysPressed.contains(LogicalKeyboardKey.keyD)) {
+      }
+      if (keysPressed.contains(LogicalKeyboardKey.arrowRight) || 
+          keysPressed.contains(LogicalKeyboardKey.keyD)) {
         velocityX = moveSpeed;
       }
 
+      // Handle jumping (independent of horizontal movement)
       if ((keysPressed.contains(LogicalKeyboardKey.space) ||
            keysPressed.contains(LogicalKeyboardKey.arrowUp) ||
            keysPressed.contains(LogicalKeyboardKey.keyW)) && isOnGround) {
@@ -291,12 +293,21 @@ class _Level1State extends State<Level1> with WidgetsBindingObserver {
 
             // On-screen touch controls for mobile
             Positioned(
-              bottom: 20,
-              left: 20,
+              bottom: 30,
+              left: 30,
               child: Row(
                 children: [
                   // Left arrow button
                   GestureDetector(
+                    onPanStart: (_) {
+                      keysPressed.add(LogicalKeyboardKey.arrowLeft);
+                    },
+                    onPanEnd: (_) {
+                      keysPressed.remove(LogicalKeyboardKey.arrowLeft);
+                    },
+                    onPanCancel: () {
+                      keysPressed.remove(LogicalKeyboardKey.arrowLeft);
+                    },
                     onTapDown: (_) {
                       keysPressed.add(LogicalKeyboardKey.arrowLeft);
                     },
@@ -307,23 +318,39 @@ class _Level1State extends State<Level1> with WidgetsBindingObserver {
                       keysPressed.remove(LogicalKeyboardKey.arrowLeft);
                     },
                     child: Container(
-                      width: 50,
-                      height: 50,
+                      width: 75,
+                      height: 75,
                       decoration: BoxDecoration(
-                        color: Colors.purple.shade700.withOpacity(0.8),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.white30),
+                        color: Colors.purple.shade700.withOpacity(0.9),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.white54, width: 2),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.3),
+                            blurRadius: 8,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
                       ),
                       child: const Icon(
                         Icons.arrow_left,
                         color: Colors.white,
-                        size: 30,
+                        size: 36,
                       ),
                     ),
                   ),
-                  const SizedBox(width: 10),
+                  const SizedBox(width: 15),
                   // Right arrow button  
                   GestureDetector(
+                    onPanStart: (_) {
+                      keysPressed.add(LogicalKeyboardKey.arrowRight);
+                    },
+                    onPanEnd: (_) {
+                      keysPressed.remove(LogicalKeyboardKey.arrowRight);
+                    },
+                    onPanCancel: () {
+                      keysPressed.remove(LogicalKeyboardKey.arrowRight);
+                    },
                     onTapDown: (_) {
                       keysPressed.add(LogicalKeyboardKey.arrowRight);
                     },
@@ -334,17 +361,24 @@ class _Level1State extends State<Level1> with WidgetsBindingObserver {
                       keysPressed.remove(LogicalKeyboardKey.arrowRight);
                     },
                     child: Container(
-                      width: 50,
-                      height: 50,
+                      width: 75,
+                      height: 75,
                       decoration: BoxDecoration(
-                        color: Colors.purple.shade700.withOpacity(0.8),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.white30),
+                        color: Colors.purple.shade700.withOpacity(0.9),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.white54, width: 2),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.3),
+                            blurRadius: 8,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
                       ),
                       child: const Icon(
                         Icons.arrow_right,
                         color: Colors.white,
-                        size: 30,
+                        size: 36,
                       ),
                     ),
                   ),
@@ -354,9 +388,18 @@ class _Level1State extends State<Level1> with WidgetsBindingObserver {
 
             // Jump button
             Positioned(
-              bottom: 20,
-              right: 20,
+              bottom: 30,
+              right: 30,
               child: GestureDetector(
+                onPanStart: (_) {
+                  keysPressed.add(LogicalKeyboardKey.space);
+                },
+                onPanEnd: (_) {
+                  keysPressed.remove(LogicalKeyboardKey.space);
+                },
+                onPanCancel: () {
+                  keysPressed.remove(LogicalKeyboardKey.space);
+                },
                 onTapDown: (_) {
                   keysPressed.add(LogicalKeyboardKey.space);
                 },
@@ -367,12 +410,19 @@ class _Level1State extends State<Level1> with WidgetsBindingObserver {
                   keysPressed.remove(LogicalKeyboardKey.space);
                 },
                 child: Container(
-                  width: 60,
-                  height: 60,
+                  width: 80,
+                  height: 80,
                   decoration: BoxDecoration(
-                    color: Colors.orange.shade600.withOpacity(0.8),
+                    color: Colors.orange.shade600.withOpacity(0.9),
                     shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white30),
+                    border: Border.all(color: Colors.white54, width: 2),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.3),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
                   child: const Center(
                     child: Text(
@@ -380,7 +430,7 @@ class _Level1State extends State<Level1> with WidgetsBindingObserver {
                       style: TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
-                        fontSize: 12,
+                        fontSize: 14,
                       ),
                     ),
                   ),
