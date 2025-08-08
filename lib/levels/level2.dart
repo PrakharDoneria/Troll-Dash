@@ -23,9 +23,9 @@ class _Level2State extends State<Level2> with WidgetsBindingObserver {
   bool gameOver = false;
   bool levelComplete = false;
 
-  final double gravity = 15;
+  final double gravity = -15;
   final double moveSpeed = 5;
-  final double jumpSpeed = -12;
+  final double jumpSpeed = 12;
   final double playerSize = 30;
 
   Set<LogicalKeyboardKey> keysPressed = {};
