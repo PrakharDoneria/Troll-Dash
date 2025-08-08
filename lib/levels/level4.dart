@@ -3,20 +3,20 @@ import 'package:flutter/services.dart';
 import 'package:trolldash/GameObjects/ground_block.dart';
 import 'package:trolldash/GameObjects/trap.dart';
 import 'package:trolldash/GameObjects/exit_door.dart';
-import 'package:trolldash/GameObjects/fake_platform.dart';
+import 'package:trolldash/GameObjects/temp_platform.dart';
 import 'package:trolldash/GameObjects/player.dart' as player_file;
 import 'package:trolldash/sound_manager.dart';
 
-class Level2 extends StatefulWidget {
-  const Level2({super.key});
+class Level4 extends StatefulWidget {
+  const Level4({super.key});
 
   @override
-  State<Level2> createState() => _Level2State();
+  State<Level4> createState() => _Level4State();
 }
 
-class _Level2State extends State<Level2> with WidgetsBindingObserver {
+class _Level4State extends State<Level4> with WidgetsBindingObserver {
   double playerX = 50;
-  double playerY = 50; // Start on ground level
+  double playerY = 50;
   double velocityX = 0;
   double velocityY = 0;
   bool isOnGround = false;
@@ -31,25 +31,34 @@ class _Level2State extends State<Level2> with WidgetsBindingObserver {
   Set<LogicalKeyboardKey> keysPressed = {};
   final SoundManager _soundManager = SoundManager();
 
-  // Level 2 has more challenging platforms but more forgiving than before
+  // Static platforms for Level 4
   List<Map<String, double>> platforms = [
-    {'x': 0, 'y': 0, 'width': 180, 'height': 50}, // Ground (wider)
-    {'x': 180, 'y': 70, 'width': 100, 'height': 20}, // Platform 1 (bigger, lower)
-    {'x': 300, 'y': 110, 'width': 100, 'height': 20}, // Platform 2 (bigger, lower)
-    {'x': 420, 'y': 140, 'width': 100, 'height': 20}, // Platform 3 (bigger, lower)
-    {'x': 550, 'y': 100, 'width': 120, 'height': 20}, // Platform 4 (bigger)
-    {'x': 700, 'y': 50, 'width': double.infinity, 'height': 50}, // End ground (closer)
+    {'x': 0, 'y': 0, 'width': 100, 'height': 50}, // Ground start
+    {'x': 550, 'y': 80, 'width': 80, 'height': 20}, // Safe platform
+    {'x': 700, 'y': 50, 'width': double.infinity, 'height': 50}, // End ground
   ];
+
+  // Global keys for temp platforms to control their state
+  final List<GlobalKey<_TempPlatformState>> _tempPlatformKeys = [
+    GlobalKey<_TempPlatformState>(),
+    GlobalKey<_TempPlatformState>(),
+    GlobalKey<_TempPlatformState>(),
+    GlobalKey<_TempPlatformState>(),
+  ];
+
+  // Track temp platform states
+  List<bool> tempPlatformStates = [true, true, true, true];
 
   void resetLevel() {
     setState(() {
       playerX = 50;
-      playerY = 50; // Start on ground level
+      playerY = 50;
       velocityX = 0;
       velocityY = 0;
       isOnGround = false;
       gameOver = false;
       levelComplete = false;
+      tempPlatformStates = [true, true, true, true];
     });
   }
 
@@ -57,14 +66,13 @@ class _Level2State extends State<Level2> with WidgetsBindingObserver {
     bool wasOnGround = isOnGround;
     isOnGround = false;
 
+    // Check static platforms
     for (var platform in platforms) {
-      // Check collision with platform
       if (playerX + playerSize > platform['x']! &&
           playerX < platform['x']! + platform['width']! &&
           playerY <= platform['y']! + platform['height']! &&
           playerY + playerSize > platform['y']!) {
         
-        // Landing on top of platform
         if (velocityY <= 0 && playerY > platform['y']! + platform['height']! - 5) {
           playerY = platform['y']! + platform['height']!;
           velocityY = 0;
@@ -73,21 +81,60 @@ class _Level2State extends State<Level2> with WidgetsBindingObserver {
       }
     }
 
-    // Check trap collisions (adjusted for new platform positions)
-    if ((playerX < 350 && playerX > 270 && playerY <= 90) ||
-        (playerX < 500 && playerX > 400 && playerY <= 160) ||
-        (playerX < 620 && playerX > 530 && playerY <= 120)) {
+    // Check temporary platforms
+    List<Map<String, double>> tempPlatforms = [
+      {'x': 150, 'y': 80, 'width': 100, 'height': 20},   // Temp platform 1
+      {'x': 280, 'y': 120, 'width': 100, 'height': 20},  // Temp platform 2
+      {'x': 410, 'y': 160, 'width': 100, 'height': 20},  // Temp platform 3
+      {'x': 250, 'y': 180, 'width': 100, 'height': 20},  // Temp platform 4
+    ];
+
+    for (int i = 0; i < tempPlatforms.length; i++) {
+      if (!tempPlatformStates[i]) continue; // Skip if platform is gone
+
+      var platform = tempPlatforms[i];
+      if (playerX + playerSize > platform['x']! &&
+          playerX < platform['x']! + platform['width']! &&
+          playerY <= platform['y']! + platform['height']! &&
+          playerY + playerSize > platform['y']!) {
+        
+        if (velocityY <= 0 && playerY > platform['y']! + platform['height']! - 5) {
+          playerY = platform['y']! + platform['height']!;
+          velocityY = 0;
+          isOnGround = true;
+          
+          // Trigger platform disappearing
+          final key = _tempPlatformKeys[i].currentState;
+          if (key != null) {
+            key.triggerDisappear();
+            Future.delayed(const Duration(milliseconds: 1500), () {
+              if (mounted) {
+                setState(() {
+                  tempPlatformStates[i] = false;
+                });
+                // Restore platform after 3 seconds
+                Future.delayed(const Duration(seconds: 3), () {
+                  if (mounted) {
+                    setState(() {
+                      tempPlatformStates[i] = true;
+                    });
+                  }
+                });
+              }
+            });
+          }
+        }
+      }
+    }
+
+    // Check trap collisions
+    if ((playerX < 630 && playerX > 580 && playerY <= 100) ||
+        (playerX < 180 && playerX > 120 && playerY <= 100)) {
       _soundManager.playTrapSound();
       gameOver = true;
     }
 
-    // Check fake platform "collision" (it disappears) - moved closer
-    if (playerX > 140 && playerX < 190 && playerY <= 120 && playerY > 100) {
-      _soundManager.playTrapSound();
-      gameOver = true;
-    }
-
-    // Check exit door collision (adjusted for new end position)
+    // Check exit door collision
     if (playerX > 750 && playerX < 810 && playerY <= 110 && playerY > 50) {
       _soundManager.playLevelCompleteSound();
       levelComplete = true;
@@ -142,7 +189,6 @@ class _Level2State extends State<Level2> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
-    // Force landscape orientation
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.landscapeLeft,
       DeviceOrientation.landscapeRight,
@@ -158,7 +204,6 @@ class _Level2State extends State<Level2> with WidgetsBindingObserver {
 
   @override
   void dispose() {
-    // Reset orientation when leaving
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
@@ -185,31 +230,38 @@ class _Level2State extends State<Level2> with WidgetsBindingObserver {
         },
         child: Stack(
           children: [
-            // Night sky background
+            // Volcanic/Lava background
             Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Colors.indigo.shade900,
-                    Colors.purple.shade900,
-                    Colors.indigo.shade800,
+                    Colors.red.shade900,
+                    Colors.orange.shade800,
+                    Colors.red.shade800,
                   ],
                 ),
               ),
             ),
 
-            // Stars
-            ...List.generate(20, (index) => Positioned(
-              left: (index * 47) % MediaQuery.of(context).size.width,
-              top: (index * 31) % 200,
+            // Lava bubbles/fire effects
+            ...List.generate(15, (index) => Positioned(
+              left: (index * 67) % MediaQuery.of(context).size.width,
+              top: (index * 29) % 180,
               child: Container(
-                width: 2,
-                height: 2,
-                decoration: const BoxDecoration(
-                  color: Colors.white,
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(
+                  color: Colors.orange.shade300,
                   shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.orange.withOpacity(0.6),
+                      blurRadius: 4,
+                      spreadRadius: 1,
+                    ),
+                  ],
                 ),
               ),
             )),
@@ -220,9 +272,9 @@ class _Level2State extends State<Level2> with WidgetsBindingObserver {
               child: Align(
                 alignment: Alignment.bottomLeft,
                 child: Container(
-                  width: 180,
+                  width: 100,
                   height: 50,
-                  color: Colors.brown.shade600,
+                  color: Colors.red.shade700,
                 ),
               ),
             ),
@@ -232,31 +284,63 @@ class _Level2State extends State<Level2> with WidgetsBindingObserver {
               right: 0,
               child: Container(
                 height: 50,
-                color: Colors.brown.shade600,
+                color: Colors.red.shade700,
               ),
             ),
 
-            // Ground blocks (platforms) - updated positions
-            const GroundBlock(x: 180, y: 70, width: 100, height: 20),
-            const GroundBlock(x: 300, y: 110, width: 100, height: 20),
-            const GroundBlock(x: 420, y: 140, width: 100, height: 20),
-            const GroundBlock(x: 550, y: 100, width: 120, height: 20),
+            // Safe static platform
+            const GroundBlock(x: 550, y: 80, width: 80, height: 20),
 
-            // Fake platform (looks like a real one but disappears when touched) - moved closer
-            FakePlatform(
-              x: 140,
-              y: 100,
+            // Temporary platforms
+            TempPlatform(
+              key: _tempPlatformKeys[0],
+              x: 150,
+              y: 80,
               width: 100,
               height: 20,
+              disappearDelayMs: 1500,
               onStep: () {
-                setState(() => gameOver = true);
+                print('Stepped on temp platform 1');
               },
             ),
-
-            // Traps - updated positions
-            Trap(
+            TempPlatform(
+              key: _tempPlatformKeys[1],
               x: 280,
-              y: 70,
+              y: 120,
+              width: 100,
+              height: 20,
+              disappearDelayMs: 1500,
+              onStep: () {
+                print('Stepped on temp platform 2');
+              },
+            ),
+            TempPlatform(
+              key: _tempPlatformKeys[2],
+              x: 410,
+              y: 160,
+              width: 100,
+              height: 20,
+              disappearDelayMs: 1500,
+              onStep: () {
+                print('Stepped on temp platform 3');
+              },
+            ),
+            TempPlatform(
+              key: _tempPlatformKeys[3],
+              x: 250,
+              y: 180,
+              width: 100,
+              height: 20,
+              disappearDelayMs: 1500,
+              onStep: () {
+                print('Stepped on temp platform 4');
+              },
+            ),
+
+            // Traps
+            Trap(
+              x: 150,
+              y: 50,
               width: 30,
               height: 30,
               onTrigger: () {
@@ -264,17 +348,8 @@ class _Level2State extends State<Level2> with WidgetsBindingObserver {
               },
             ),
             Trap(
-              x: 450,
-              y: 140,
-              width: 30,
-              height: 30,
-              onTrigger: () {
-                setState(() => gameOver = true);
-              },
-            ),
-            Trap(
-              x: 580,
-              y: 100,
+              x: 600,
+              y: 80,
               width: 30,
               height: 30,
               onTrigger: () {
@@ -282,7 +357,7 @@ class _Level2State extends State<Level2> with WidgetsBindingObserver {
               },
             ),
 
-            // Exit door - moved closer
+            // Exit door
             ExitDoor(
               x: 760,
               y: 50,
@@ -315,15 +390,15 @@ class _Level2State extends State<Level2> with WidgetsBindingObserver {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Level 2 - Troll\'s Revenge',
+                      'Level 4 - Vanishing Steps',
                       style: TextStyle(
-                        color: Colors.yellow,
+                        color: Colors.orange,
                         fontWeight: FontWeight.bold,
                         fontSize: 14,
                       ),
                     ),
                     Text(
-                      'Watch out for fake platforms!',
+                      'Platforms disappear after you step on them!',
                       style: TextStyle(color: Colors.white, fontSize: 10),
                     ),
                     Text(
@@ -509,7 +584,7 @@ class _Level2State extends State<Level2> with WidgetsBindingObserver {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       const Text(
-                        'You\'ve Been Trolled!',
+                        'Fell Into The Lava!',
                         style: TextStyle(
                           color: Colors.red,
                           fontSize: 42,
@@ -518,7 +593,7 @@ class _Level2State extends State<Level2> with WidgetsBindingObserver {
                       ),
                       const SizedBox(height: 10),
                       const Text(
-                        '🤡 GAME OVER 🤡',
+                        '🔥 GAME OVER 🔥',
                         style: TextStyle(
                           color: Colors.orange,
                           fontSize: 24,
@@ -560,18 +635,18 @@ class _Level2State extends State<Level2> with WidgetsBindingObserver {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       const Text(
-                        '🎭 Troll Master! 🎭',
+                        '🔥 Volcano Conquered! 🔥',
                         style: TextStyle(
-                          color: Colors.yellow,
+                          color: Colors.orange,
                           fontSize: 36,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       const SizedBox(height: 10),
                       const Text(
-                        'Level 2 Complete!',
+                        'Level 4 Complete!',
                         style: TextStyle(
-                          color: Colors.yellow,
+                          color: Colors.orange,
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
                         ),
